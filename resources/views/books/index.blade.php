@@ -21,7 +21,7 @@
         <div class="flex flex-col gap-2 shrink-0 sm:flex-row">
             {{--View All books Button--}}
             <button
-                class="select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                class="btn select-none rounded-lg border border-gray-900 py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-gray-900 transition-all hover:opacity-75 focus:ring focus:ring-gray-300 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                 type="button">
                 <a href="{{ route('books.index') }}">View All</a>
             </button>
@@ -46,7 +46,7 @@
         {{--Books page numbers select--}}
                 <div class="flex items-center w-full max-w-sm min-w-[200px]">
                     <div class="relative">
-                        <form method="GET" action="{{ route('users.index') }}">
+                        <form method="GET" action="{{ route('books.index') }}">
                             <select name="per_page" id="per_page" onchange="this.form.submit()"
                                     class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded pl-3 pr-8 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-400 shadow-sm focus:shadow-md appearance-none cursor-pointer">
                                 @foreach ([5, 10, 25, 50] as $size)
@@ -79,6 +79,7 @@
         {{--End Books page numbers select--}}
             </div>
         </div>
+
         <div class="flex flex-col shrink-0 sm:flex-row">
         {{--Search form--}}
             <div class="w-full max-w-sm min-w-[200px]">
@@ -86,12 +87,10 @@
                     <form method="GET" id="search" action="{{ route('books.index') }}" class="mb-4">
                         <input type="text" name="search"
                                class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md pl-3 pr-28 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
-                               placeholder="Search here..."
-                        />
+                               placeholder="Search here..."/>
                         <button
                             class="absolute top-1 right-1 flex items-center rounded bg-slate-800 py-1 px-2.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                            type="submit"
-                        >
+                            type="submit">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 mr-2">
                                 <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clip-rule="evenodd" />
                             </svg>
@@ -105,31 +104,68 @@
         </div>
     </div>
     {{--Content--}}
+    @php
+        // Helper to get the URL for sorting on a column
+        function sort_link($column, $label, $sort, $direction) {
+            // Toggle direction if currently sorting by this column
+            $dir = ($sort === $column && $direction === 'asc') ? 'desc' : 'asc';
+
+            // Preserve other query parameters (search, per_page)
+            $query = request()->all();
+            $query['sort'] = $column;
+            $query['direction'] = $dir;
+
+            $url = url()->current() . '?' . http_build_query($query);
+
+            // Add arrow symbol to indicate sort direction
+            $arrow = '';
+            if ($sort === $column) {
+                $arrow = $direction === 'asc' ? ' ▲' : ' ▼';
+            }
+
+            return '<a href="'.$url.'">'.e($label).$arrow.'</a>';
+        }
+    @endphp
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
     <div class="relative flex flex-col w-full h-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+        <form id="bulk-delete-form" action="{{ route('books.bulk-delete') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete selected books?');">
+            @csrf
+            @method('DELETE')
         <table class="w-full text-left table-auto p-100">
         <thead>
-        <tr>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">Id</th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">Custom Id</th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">Cover</th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">Title</th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">Author</th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">Description</th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">State</th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">Actions</th>
-        </tr>
+            <tr>
+                <th class="p-4 border-b border-slate-300 bg-slate-50"><input type="checkbox" id="select-all"> Id</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">{!! sort_link('custom_id', 'Number', $sort, $direction) !!}</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">Cover</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">{!! sort_link('title', 'Title', $sort, $direction) !!}</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">{!! sort_link('author', 'Author', $sort, $direction) !!}</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">{!! sort_link('publisher', 'Publisher', $sort, $direction) !!}</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">{!! sort_link('publication_year', 'Year', $sort, $direction) !!}</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">{!! sort_link('state', 'State', $sort, $direction) !!}</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">{!! sort_link('state', 'Book State', $sort, $direction) !!}</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">{!! sort_link('book_type', 'Book Type', $sort, $direction) !!}</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">Actions</th>
+            </tr>
         </thead>
         <tbody>
         @foreach ($books as $book)
             <tr class="hover:bg-slate-50">
-                <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $book->id }}</td>
+                <td class="p-4 border-b border-blue-gray-50 border-slate-200"><input type="checkbox" name="ids[]" value="{{ $book->id }}" class="row-checkbox"> {{ $book->id }}</td>
                 <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $book->custom_id }}</td>
                 <td class="p-4 border-b border-blue-gray-50 border-slate-200">
                     <img src="{{ $book->cover_image }}" class="relative inline-block h-12 w-12 !rounded-full border border-blue-gray-50 bg-blue-gray-50/50 object-contain object-center p-1" />
                 </td>
                 <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $book->title }}</td>
                 <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $book->author }}</td>
-                <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $book->description }}</td>
+                <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $book->publisher }}</td>
+                <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $book->publication_year }}</td>
                 <td class="p-4 border-b border-blue-gray-50 border-slate-200">
                     <div class="w-max">
                         <div class="relative grid items-center px-2 py-1 font-sans text-xs font-bold text-green-900 uppercase rounded-md select-none whitespace-nowrap bg-green-500/20">
@@ -137,28 +173,62 @@
                         </div>
                     </div>
                 </td>
-                <td class="p-4 border-b border-blue-gray-50 border-slate-200 font-semibold">
+                <td class="p-4 border-b border-blue-gray-50 border-slate-200">
+                    <div class="w-max">
+                        <div class="relative grid items-center px-2 py-1 font-sans text-xs font-bold text-green-900 uppercase rounded-md select-none whitespace-nowrap bg-green-500/20">
+                            {{ $book->book_state }}
+                        </div>
+                    </div>
+                </td>
+                <td class="p-4 border-b border-blue-gray-50 border-slate-200">
+                    <div class="w-max">
+                        @if($book->book_type === 'reading')
+                            <div class="relative grid items-center px-2 py-1 font-sans text-xs font-bold text-blue-900 uppercase rounded-md select-none whitespace-nowrap bg-blue-500/20">
+                                {{ $book->book_type }}
+                            </div>
+                        @else
+                            <div class="relative grid items-center px-2 py-1 font-sans text-xs font-bold text-orange-900 uppercase rounded-md select-none whitespace-nowrap bg-orange-500/20">
+                                {{ $book->book_type }}
+                            </div>
+                        @endif
+                    </div>
+                </td>
+                <td class="p-4 border-b border-blue-gray-50 border-slate-200">
                     <div>
                         <a href="{{ route('books.show', $book->id) }}">View</a>
                     </div>
                     <div>
                         <a href="{{ route('books.edit', $book->id) }}">Edit</a>
                     </div>
-                    <form action="{{ route('books.destroy', $book->id) }}" method="POST" style="display:inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit">Delete</button>
-                    </form>
+                    <div>
+                        <form id="delete-book-{{ $book->id }}" action="{{ route('books.destroy', $book) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Delete this user?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit">Delete</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
         @endforeach
         </tbody>
     </table>
+            <button type="submit" class="btn btn-danger" >
+                Delete Selected
+            </button>
+
+        </form>
         <div class="m-4">
 {{--            <span><a href="{{ $books->url(1) }}">First</a></span>--}}
             {{ $books->links() }}
 {{--            <span><a href="{{ $books->url($books->lastPage()) }} ">Last</a></span>--}}
         </div>
     </div>
-
+    <script>
+        document.getElementById('select-all').addEventListener('change', function(e) {
+            let checked = e.target.checked;
+            document.querySelectorAll('.row-checkbox').forEach(function(checkbox) {
+                checkbox.checked = checked;
+            });
+        });
+    </script>
 @endsection

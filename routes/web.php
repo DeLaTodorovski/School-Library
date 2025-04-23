@@ -23,6 +23,7 @@ Route::middleware(['auth:librarian'])->group(function () {
 
     // Other routes that require authentication
     Route::delete('/users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
+    Route::delete('/books/bulk-delete', [BookController::class, 'bulkDelete'])->name('books.bulk-delete');
     Route::resource('users', UserController::class);
     Route::resource('books', BookController::class);
     Route::resource('loans', LoanController::class);

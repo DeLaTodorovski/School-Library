@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
@@ -15,9 +16,20 @@ class BookController extends Controller
 
         // Search term from query string
         $search = $request->input('search');
-
         // Items per page, default 10
         $perPage = $request->input('per_page', 10);
+        $sort = $request->input('sort', 'id'); // default sort column
+        $direction = $request->input('direction', 'asc'); // default direction
+
+        $validSorts = ['id', 'custom_id', 'title', 'author', 'publisher', 'publication_year', 'state', 'book_state', 'book_type', 'created_at']; // columns allowed for sorting
+        if (!in_array($sort, $validSorts)) {
+            $sort = 'id';
+        }
+
+        $validDirections = ['asc', 'desc'];
+        if (!in_array($direction, $validDirections)) {
+            $direction = 'asc';
+        }
 
         // Validate perPage against allowed values
         $validPerPages = [5, 10, 25, 50];
@@ -36,11 +48,16 @@ class BookController extends Controller
             });
         }
 
+        $query->orderBy($sort, $direction);
+
         // Paginate with per-page and append current search and per_page to links
         $books = $query->paginate($perPage)
-            ->appends(['search' => $search, 'per_page' => $perPage]);
+            ->appends([
+                'search' => $search,
+                'per_page' => $perPage
+            ]);
 
-        return view('books.index', compact('books', 'search', 'perPage'));
+        return view('books.index', compact('books', 'search', 'perPage', 'sort', 'direction'));
 
 
 
@@ -128,5 +145,22 @@ class BookController extends Controller
     {
         $book->delete();
         return redirect()->route('books.index');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'No books selected.');
+        }
+
+        Book::whereIn('id', $ids)->delete();
+
+        return redirect()->back()->with('success', 'Selected book deleted successfully.');
     }
 }

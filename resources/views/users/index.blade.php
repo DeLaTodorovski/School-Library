@@ -200,7 +200,8 @@
                         <div>
                             <a href="{{ route('users.edit', $user->id) }}">Edit</a>
                         </div>
-                        <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display:inline;">
+                        <!-- Single delete form NOT nested inside bulk form -->
+                        <form id="delete-user-{{ $user->id }}" action="{{ route('users.destroy', $user) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Delete this user?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit">Delete</button>
