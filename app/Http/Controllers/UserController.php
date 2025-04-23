@@ -18,6 +18,18 @@ class UserController extends Controller
         // Get 'search' and 'per_page' from request
         $search = $request->input('search');
         $perPage = $request->input('per_page', 10);
+        $sort = $request->input('sort', 'id'); // default sort column
+        $direction = $request->input('direction', 'asc'); // default direction
+
+        $validSorts = ['id', 'first_name', 'last_name', 'email', 'created_at']; // columns allowed for sorting
+        if (!in_array($sort, $validSorts)) {
+            $sort = 'id';
+        }
+
+        $validDirections = ['asc', 'desc'];
+        if (!in_array($direction, $validDirections)) {
+            $direction = 'asc';
+        }
 
         // Allowed items per page options
         $validPerPages = [5, 10, 25, 50];
@@ -37,6 +49,8 @@ class UserController extends Controller
             });
         }
 
+        $query->orderBy($sort, $direction);
+
         // Paginate results
         $users = $query->paginate($perPage)
             ->appends([
@@ -45,7 +59,7 @@ class UserController extends Controller
             ]);
 
         // Return view with users, current search term, and perPage value
-        return view('users.index', compact('users', 'search', 'perPage'));
+        return view('users.index', compact('users', 'search', 'perPage', 'sort', 'direction'));
     }
 
     /**
@@ -110,5 +124,18 @@ class UserController extends Controller
     {
         $user->delete();
         return redirect()->route('users.index');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'No users selected.');
+        }
+
+        User::whereIn('id', $ids)->delete();
+
+        return redirect()->back()->with('success', 'Selected users deleted successfully.');
     }
 }

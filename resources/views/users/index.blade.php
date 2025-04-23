@@ -106,13 +106,46 @@
         </div>
     </div>
     {{--Content--}}
+
+    @php
+        // Helper to get the URL for sorting on a column
+        function sort_link($column, $label, $sort, $direction) {
+            // Toggle direction if currently sorting by this column
+            $dir = ($sort === $column && $direction === 'asc') ? 'desc' : 'asc';
+
+            // Preserve other query parameters (search, per_page)
+            $query = request()->all();
+            $query['sort'] = $column;
+            $query['direction'] = $dir;
+
+            $url = url()->current() . '?' . http_build_query($query);
+
+            // Add arrow symbol to indicate sort direction
+            $arrow = '';
+            if ($sort === $column) {
+                $arrow = $direction === 'asc' ? ' ▲' : ' ▼';
+            }
+
+            return '<a href="'.$url.'">'.e($label).$arrow.'</a>';
+        }
+    @endphp
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
     <div class="relative flex flex-col w-full h-full text-gray-700 bg-white shadow-md rounded-xl bg-clip-border">
+        <form id="bulk-delete-form" action="{{ route('users.bulk-delete') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete selected users?');">
+            @csrf
+            @method('DELETE')
         <table class="w-full text-left table-auto p-100">
             <thead>
             <tr>
-                <th class="p-4 border-b border-slate-300 bg-slate-50">Id</th>
-                <th class="p-4 border-b border-slate-300 bg-slate-50">First Name</th>
-                <th class="p-4 border-b border-slate-300 bg-slate-50">Last Name</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50"><input type="checkbox" id="select-all"> Id</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">{!! sort_link('first_name', 'First Name', $sort, $direction) !!}</th>
+                <th class="p-4 border-b border-slate-300 bg-slate-50">{!! sort_link('last_name', 'Last Name', $sort, $direction) !!}</th>
                 <th class="p-4 border-b border-slate-300 bg-slate-50">School Class</th>
                 <th class="p-4 border-b border-slate-300 bg-slate-50">Class Teacher
                 <th class="p-4 border-b border-slate-300 bg-slate-50">Type</th>
@@ -123,7 +156,7 @@
             <tbody>
             @foreach ($users as $user)
                 <tr class="hover:bg-slate-50">
-                    <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $user->id }}</td>
+                    <td class="p-4 border-b border-blue-gray-50 border-slate-200"><input type="checkbox" name="ids[]" value="{{ $user->id }}" class="row-checkbox"> {{ $user->id }}</td>
                     <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $user->first_name }}</td>
                     <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $user->last_name }}</td>
                     <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $user->school_class }} class</td>
@@ -177,11 +210,22 @@
             @endforeach
             </tbody>
         </table>
+            <button type="submit" class="btn btn-danger" style="margin-top:10px;">
+                Delete Selected
+            </button>
+        </form>
         <div class="m-4">
             {{--            <span><a href="{{ $users->url(1) }}">First</a></span>--}}
             {{ $users->links() }}
             {{--            <span><a href="{{ $users->url($users->lastPage()) }} ">Last</a></span>--}}
         </div>
     </div>
-
+    <script>
+        document.getElementById('select-all').addEventListener('change', function(e) {
+            let checked = e.target.checked;
+            document.querySelectorAll('.row-checkbox').forEach(function(checkbox) {
+                checkbox.checked = checked;
+            });
+        });
+    </script>
 @endsection

@@ -22,12 +22,16 @@ Route::middleware(['auth:librarian'])->group(function () {
     // Other protected routes go here
 
     // Other routes that require authentication
+    Route::delete('/users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
     Route::resource('users', UserController::class);
     Route::resource('books', BookController::class);
     Route::resource('loans', LoanController::class);
+
 //    // Example route to users
 //    Route::get('/users', [UserController::class, 'index'])->name('users.index'); // Adjust as needed
 //    Route::get('/books', [BookController::class, 'index'])->name('books.index');
 });
+
+
 
 
