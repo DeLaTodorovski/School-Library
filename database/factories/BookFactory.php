@@ -20,6 +20,7 @@ class BookFactory extends Factory
     public function definition(): array
     {
         return [
+            'custom_id' => $this->faker->randomNumber(4,null),
             'title' => $this->faker->sentence(),
             'author' => $this->faker->name(),
             'publisher' => $this->faker->company(),

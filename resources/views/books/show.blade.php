@@ -3,6 +3,7 @@
 @section('content')
 
     <h1>Book Details</h1>
+    <p><strong>Custom ID:</strong> {{ $book->custom_id }}</p>
     <p><strong>Title:</strong> {{ $book->title }}</p>
     <p><strong>Author:</strong> {{ $book->author }}</p>
     <p><strong>Publisher:</strong> {{ $book->publisher }}</p>

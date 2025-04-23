@@ -26,8 +26,6 @@ class UserFactory extends Factory
             'school_class' => $this->faker->numberBetween(1, 9),
             'class_teacher' => $this->faker->name(gender: null),
             'is_teacher' => $this->faker->numberBetween(0, 1),
-            'is_student' => $this->faker->numberBetween(0, 1),
-            'is_active' => $this->faker->numberBetween(0, 1),
             'is_banned' => $this->faker->numberBetween(0, 1),
             'email' => $this->faker->unique()->safeEmail(),
             'school_year_id' => SchoolYear::factory(),

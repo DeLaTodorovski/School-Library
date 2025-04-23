@@ -110,6 +110,7 @@
         <thead>
         <tr>
             <th class="p-4 border-b border-slate-300 bg-slate-50">Id</th>
+            <th class="p-4 border-b border-slate-300 bg-slate-50">Custom Id</th>
             <th class="p-4 border-b border-slate-300 bg-slate-50">Cover</th>
             <th class="p-4 border-b border-slate-300 bg-slate-50">Title</th>
             <th class="p-4 border-b border-slate-300 bg-slate-50">Author</th>
@@ -122,6 +123,7 @@
         @foreach ($books as $book)
             <tr class="hover:bg-slate-50">
                 <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $book->id }}</td>
+                <td class="p-4 border-b border-blue-gray-50 border-slate-200">{{ $book->custom_id }}</td>
                 <td class="p-4 border-b border-blue-gray-50 border-slate-200">
                     <img src="{{ $book->cover_image }}" class="relative inline-block h-12 w-12 !rounded-full border border-blue-gray-50 bg-blue-gray-50/50 object-contain object-center p-1" />
                 </td>
