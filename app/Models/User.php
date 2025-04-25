@@ -32,4 +32,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(SchoolYear::class);
     }
+
+    public function loanedBooks()
+    {
+        return $this->hasMany(Loan::class);
+    }
 }

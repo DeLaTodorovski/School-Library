@@ -15,7 +15,7 @@ Route::post('/librarians/logout', [LibrarianController::class, 'logout'])->middl
 // Make sure these are the only routes that are named 'login'
 
 Route::middleware(['auth:librarian'])->group(function () {
-    Route::get('/dashboard', function () {
+    Route::get('/', function () {
         return view('dashboard');
     })->name('dashboard');
 
@@ -24,6 +24,8 @@ Route::middleware(['auth:librarian'])->group(function () {
     // Other routes that require authentication
     Route::delete('/users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
     Route::delete('/books/bulk-delete', [BookController::class, 'bulkDelete'])->name('books.bulk-delete');
+    Route::post('loans/return', [LoanController::class, 'return'])->name('loans.return');
+    Route::get('loans/search-users', [LoanedBooksController::class, 'searchUsers'])->name('loans.searchUsers');
     Route::resource('users', UserController::class);
     Route::resource('books', BookController::class);
     Route::resource('loans', LoanController::class);

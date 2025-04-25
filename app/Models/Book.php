@@ -21,4 +21,13 @@ class Book extends Model
         'book_type'
 
     ];
+
+    protected $casts = [
+        'loaned_at' => 'publication_year'
+    ];
+
+    public function loans()
+    {
+        return $this->hasMany(Loan::class);
+    }
 }

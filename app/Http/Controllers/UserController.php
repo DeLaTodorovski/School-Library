@@ -55,7 +55,9 @@ class UserController extends Controller
         $users = $query->paginate($perPage)
             ->appends([
                 'search' => $search,
-                'per_page' => $perPage
+                'per_page' => $perPage,
+                'sort' => $perPage,
+                'direction' => $perPage
             ]);
 
         // Return view with users, current search term, and perPage value
@@ -97,7 +99,10 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return view('users.show', compact('user'));
+        // Load user's loaned books that are not returned yet
+        $loanedBooks = $user->loanedBooks()->whereNull('returned_at')->with('book')->get();
+
+        return view('users.show', compact('user', 'loanedBooks'));
     }
 
     /**
